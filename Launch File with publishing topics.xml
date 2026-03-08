@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<indexing>
+ <object alt="" name="Image6" object_type="graphic"/>
+ <object alt="" name="Image1" object_type="graphic"/>
+ <object alt="" name="Image8" object_type="graphic"/>
+ <object alt="" name="Image2" object_type="graphic"/>
+ <object alt="" name="Image3" object_type="graphic"/>
+ <paragraph index="24" node_type="writer">Launch File with publishing topics</paragraph>
+ <paragraph index="26" node_type="writer">1.Setup</paragraph>
+ <paragraph index="27" node_type="writer">ตรวจสอบตำแหน่งของ launch file เพื่อจะได้เข้าไปแก้ไขไฟล์ได้</paragraph>
+ <paragraph index="28" node_type="writer">(จะแสดง .launch.py ทั้งหมดภายในros)</paragraph>
+ <paragraph index="31" node_type="writer">จะแสดงตำแหน่งของlaunch file multisim.launch.py</paragraph>
+ <paragraph index="37" node_type="writer">2.Edit launch file</paragraph>
+ <paragraph index="38" node_type="writer">จำเป็นต้องใช้ sudo เนื่องจากโฟเดอร์เป็น system directory การแก้ไขปกติจึงไม่สามารถใช้งานได้</paragraph>
+ <paragraph index="42" node_type="writer">import action สำหรับคำสั่งใน launch.py </paragraph>
+ <paragraph index="45" node_type="writer">เนื่องจาก ExecuteProcess คือ action ใน ros2 launch ที่ใช้สั่ง run คำสั่งโดยตรงของ topic </paragraph>
+ <paragraph index="51" node_type="writer">เพิ่มคำสั่งเพื่อให้ turtlesim หมุนพร้อมกันเมื่อ run launch file</paragraph>
+ <paragraph index="69" node_type="writer">3.Start Launch file</paragraph>
+ <paragraph index="70" node_type="writer">เริ่มต้นการทำงานของ launch file </paragraph>
+ <paragraph index="73" node_type="writer">จะปรากฎหน้าต่างการจำลอง และมีเต่าอยู่ตรงกลาง 2 หน้าต่าง ซึ่งจะหมุนเป็นวงกลมพร้อมกัน</paragraph>
+ <object name="Text Frame 4" alt="" object_type="shape" description=""/>
+ <paragraph index="0" node_type="common" object_name="Text Frame 4"> ros2 launch turtlesim multisim.launch.py</paragraph>
+ <object name="Text Frame 1" alt="" object_type="shape" description=""/>
+ <paragraph index="0" node_type="common" object_name="Text Frame 1"> find /opt/ros -name &quot;*.launch.py&quot; 2&gt;/dev/null</paragraph>
+ <object name="Text Frame 2" alt="" object_type="shape" description=""/>
+ <paragraph index="0" node_type="common" object_name="Text Frame 2">sudo nano /opt/ros/humble/share/turtlesim/launch/multisim.launch.py</paragraph>
+ <object name="Text Frame 3" alt="" object_type="shape" description=""/>
+ <paragraph index="0" node_type="common" object_name="Text Frame 3"> from launch.actions import ExecuteProcess</paragraph>
+ <object name="Shape 1" alt="" object_type="shape" description=""/>
+ <object name="Shape 2" alt="" object_type="shape" description=""/>
+ <object name="Text Frame 8" alt="" object_type="shape" description=""/>
+ <paragraph index="0" node_type="common" object_name="Text Frame 8">  ExecuteProcess(</paragraph>
+ <paragraph index="1" node_type="common" object_name="Text Frame 8">            cmd=[ 'ros2', 'topic', 'pub', '/turtlesim1/turtle1/cmd_vel', 'geometry_msgs/msg/Twist', '{linear: {x: 2.0}, angular: {z: 1.8}}', '-r', '10'], output='screen'),</paragraph>
+ <paragraph index="2" node_type="common" object_name="Text Frame 8">       ExecuteProcess(</paragraph>
+ <paragraph index="3" node_type="common" object_name="Text Frame 8">            cmd=[ 'ros2', 'topic', 'pub', '/turtlesim2/turtle1/cmd_vel', 'geometry_msgs/msg/Twist', '{linear: {x: 2.0}, angular: {z: -1.8}}', '-r', '10'], output='screen'),</paragraph>
+ <object name="Shape 3" alt="" object_type="shape" description=""/>
+ <object name="Shape 4" alt="" object_type="shape" description=""/>
+</indexing>
