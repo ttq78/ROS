@@ -49,7 +49,7 @@ def generate_launch_description():
         actions=[
             Node(
                 package='hand_servo_control',
-                executable='hand_tracking_node1',
+                executable='hand_tracking_node2',
                 output='screen'
             )
         ]
