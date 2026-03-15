@@ -18,25 +18,21 @@ class HandJointController(Node):
     def __init__(self):
         super().__init__('hand_joint_controller')
 
-        # Publish arm trajectory
         self.traj_pub = self.create_publisher(
             JointTrajectory,
             '/arm_controller/joint_trajectory',
             10
         )
 
-        # Gripper action client
         self.gripper_client = ActionClient(
             self,
             GripperCommand,
             '/gripper_controller/gripper_cmd'
         )
 
-        # Link attacher services
         self.attach_client = self.create_client(AttachLink, '/ATTACHLINK')
         self.detach_client = self.create_client(DetachLink, '/DETACHLINK')
 
-        # MediaPipe setup
         self.mp_hands = mp.solutions.hands
         self.mp_draw = mp.solutions.drawing_utils
 
@@ -47,14 +43,14 @@ class HandJointController(Node):
             min_tracking_confidence=0.7
         )
 
-        # Camera
         self.cap = cv2.VideoCapture(0)
 
-        # Joint state
         self.joint_positions = [0.0, -0.5, 0.5]
-        self.prev_grip_state = None
+        self.joint4 = 0.0
 
-        # Timer
+        self.prev_grip_state = None
+        self.thumb_trigger = False
+
         self.timer = self.create_timer(0.03, self.process_frame)
 
     # -------------------------------------------------
@@ -70,7 +66,7 @@ class HandJointController(Node):
             self.joint_positions[0],
             self.joint_positions[1],
             self.joint_positions[2],
-            0.0
+            self.joint4
         ]
 
         point.time_from_start.sec = 0
@@ -98,7 +94,6 @@ class HandJointController(Node):
     def attach_box(self):
 
         if not self.attach_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().warn("Attach service not available")
             return
 
         req = AttachLink.Request()
@@ -111,14 +106,11 @@ class HandJointController(Node):
 
         self.attach_client.call_async(req)
 
-        self.get_logger().info("Box attached")
-
     # -------------------------------------------------
 
     def detach_box(self):
 
         if not self.detach_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().warn("Detach service not available")
             return
 
         req = DetachLink.Request()
@@ -130,8 +122,6 @@ class HandJointController(Node):
         req.link2_name = 'box_link'
 
         self.detach_client.call_async(req)
-
-        self.get_logger().info("Box detached")
 
     # -------------------------------------------------
 
@@ -167,9 +157,31 @@ class HandJointController(Node):
             self.joint_positions[1] = np.clip(y * 2.0, -2.0, 2.0)
             self.joint_positions[2] = np.clip(-y * 2.0, -2.0, 2.0)
 
+            # -------------------------
+            # Thumb control joint4
+            # -------------------------
+
+            thumb_tip = hand.landmark[4]
+            thumb_ip = hand.landmark[3]
+
+            thumb_up = thumb_tip.y < thumb_ip.y
+
+            if thumb_up and not self.thumb_trigger:
+
+                self.joint4 += 0.2
+                self.joint4 = np.clip(self.joint4, -1.7, 1.7)
+
+                self.thumb_trigger = True
+
+            if not thumb_up:
+                self.thumb_trigger = False
+
             self.send_trajectory()
 
+            # -------------------------
             # Finger counting
+            # -------------------------
+
             tips = [8, 12, 16, 20]
 
             finger_count = 0
@@ -188,21 +200,28 @@ class HandJointController(Node):
                 if grip_state == "open":
 
                     self.send_gripper_goal(0.018)
-
                     self.detach_box()
 
                 else:
 
                     self.send_gripper_goal(0.00145)
-
                     self.attach_box()
 
                 self.prev_grip_state = grip_state
 
         cv2.imshow("Hand Control", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        key = cv2.waitKey(1) & 0xFF
+
+        if key == ord('q'):
             rclpy.shutdown()
+
+        if key == ord('r'):
+
+            self.joint4 = 0.0
+            self.send_trajectory()
+
+            print("Joint4 Reset")
 
     # -------------------------------------------------
 
@@ -214,6 +233,9 @@ def main(args=None):
     node = HandJointController()
 
     rclpy.spin(node)
+
+    node.cap.release()
+    cv2.destroyAllWindows()
 
     node.destroy_node()
 
